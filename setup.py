@@ -9,7 +9,7 @@ from setuptools import setup
 def _get_version():
     version_re = compile(r"__version__\s+=\s+(.*)")
 
-    with open("up2b2.py", "rb") as fh:
+    with open("up2minio.py", "rb") as fh:
         version = ast.literal_eval(
             version_re.search(fh.read().decode("utf-8")).group(1)
         )
