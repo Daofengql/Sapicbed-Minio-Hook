@@ -21,7 +21,7 @@ def _get_author():
     author_re = compile(r"__author__\s+=\s+(.*)")
     mail_re = compile(r"(.*)\s<(.*)>")
 
-    with open("up2b2.py", "rb") as fh:
+    with open("up2minio.py", "rb") as fh:
         author = ast.literal_eval(
             author_re.search(fh.read().decode("utf-8")).group(1)
         )
