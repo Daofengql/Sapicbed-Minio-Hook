@@ -1,55 +1,126 @@
-up2minio
-========
+# up2minio - Sapic 图床的 Minio 存储钩子扩展
 
-这是基于 `sapic <https://github.com/sapicd/sapic>`_
-的一个小的扩展模块，用来将上传的图片保存到 `Minio`中
+**许可证**: 本项目基于 [Apache 2.0 许可证](https://www.apache.org/licenses/LICENSE-2.0) 开源，您可以自由使用、修改和分发本项目，但需保留原始版权声明及许可证信息。
 
-安装
-------
+---
 
-- 正式版本
+## 简介
 
-    `$ pip install -U up2b2` #暂时不支持
+`up2minio` 是基于 [Sapic](https://github.com/daofengqianlin/Sapic) 的一个扩展模块，用于将上传的图片保存到自建的 `Minio` 对象存储中。它支持通过 Minio 的 S3 兼容 API 上传图片，并提供必要的配置与管理功能。
 
-- 开发版本
+---
 
-    `$ pip install -U git+https://github.com/Daofengql/Sapicbed-Minio-Hook.git@main`
+## 安装
 
-开始使用
-----------
+### 正式 ‖ 开发版本
 
-此扩展请在部署 `sapic <https://github.com/sapicd/sapic>`_ 图床后使用，需要
-其管理员进行添加扩展、设置钩子等操作。
+#### 开发版本安装
+运行以下命令安装开发版本：
+```bash
+pip install -U git+https://github.com/Daofengql/Sapicbed-Minio-Hook.git@main
+```
 
-添加：
-^^^^^^^^
+---
 
-请在 **站点管理-钩子扩展** 中添加第三方钩子，输入模块名称：up2minio，
-确认后提交即可加载这个模块（请在服务器先手动安装或Web上安装第三方包）。
+## 开始使用
 
-配置：
-^^^^^^^^
+### 环境准备
 
-在 **站点管理-网站设置** 底部的钩子配置区域配置 minio 相关信息。
+1. 部署并运行 [Sapic 图床](https://github.com/daofengqianlin/Sapic)。
+2. 确保 Minio 服务已搭建并配置了所需的存储桶（Bucket）。
 
-Bucket即桶名称，要求公开可读。
+### 添加扩展
 
-region为Minio服务端设置的节点名称
+1. 登录 Sapic 站点管理员后台。
+2. 进入 **站点管理 > 钩子扩展** 页面。
+3. 添加钩子扩展：
+   - **模块名称**：输入 `up2minio`。
+   - 提交保存后，模块会被加载（请确保扩展模块已通过 pip 安装到服务器）。
 
-AccessKey为Minio服务端创建的对当前Bucket有权限的AK
+### 配置扩展
 
-Secret KEY为Minio服务端创建的对当前Bucket有权限的SK
+1. 进入 **站点管理 > 网站设置** 页面。
+2. 在页面底部的钩子配置区域，填写 Minio 的相关信息：
+   - **Bucket**：Minio 存储桶名称（需公开可读）。
+   - **Region**：Minio 服务端的节点名称。
+   - **AccessKey**：对存储桶有权限的 Access Key。
+   - **SecretKey**：对存储桶有权限的 Secret Key。
+   - **Endpoint**：Minio 服务的 S3 API 地址（如 `127.0.0.1:9000`，无需包含协议头）。
+   - **CDN Domain**：自定义 CDN 加速域名，需包含协议头，例如 `https://cdn.example.com`。
+   - **存储根目录**：图片存储在存储桶内的路径（非存储桶名称）。
 
-endpoint为Minio服务端的S3API地址，如127.0.0.1:9000  不需要写请求协议的部分，默认会使用https来请求，暂不支持http请求，可以使用NGINX来反向代理你的s3api来解决问题
+### 启用存储后端
 
-cdn domain 为自定义的CDN服务地址，通常为直接将endpoint作为源站建立的url，需要协议头，并且更具情况，在第一级目录上配置Bucket
+1. 在 **站点管理 > 网站设置 > 上传区域** 页面。
+2. 设置存储后端为 `up2minio`。
+3. 保存设置后，所有上传的图片将存储到 Minio。
 
-存储根目录 在Minio Bucket里面的储存位置，不是Bucket name
+---
 
-使用：
-^^^^^^^^
+## 功能特点
 
-同样在 **站点管理-网站设置** 上传区域中选择存储后端为 `up2minio` 即可，
-后续图片上传时将保存到minio。
+1. **扩展性**：基于 Sapic 的钩子架构，可无缝集成。
+2. **支持自定义 CDN**：通过配置 CDN 域名优化访问速度。
+3. **存储路径灵活**：支持自定义 Minio 存储根目录。
+4. **安全性**：通过 AK/SK 验证访问，确保数据安全。
 
-上传图片的sender名称是：up2minio
+---
+
+## API 方法
+
+### `get_bucket_obj()`
+返回 Minio 客户端对象。
+
+- **用途**：初始化 Minio 客户端。
+
+### `upimg_save(**kwargs)`
+上传图片到 Minio。
+- **参数**：
+  - `filename`：图片文件名。
+  - `stream`：图片文件流。
+  - `upload_path`：上传路径。
+- **返回**：字典，包含上传结果（`src` 为图片的完整 URL）。
+
+### `upimg_delete(sha, upload_path, filename, basedir, save_result)`
+删除存储在 Minio 中的图片。
+- **参数**：
+  - `sha`：图片的哈希值。
+  - `upload_path`：上传路径。
+  - `filename`：图片文件名。
+  - `basedir`：存储根目录。
+  - `save_result`：保存时的结果。
+- **返回**：无。
+
+---
+
+## 注意事项
+
+1. **HTTPS 限制**：目前仅支持 HTTPS，若 Minio 不支持 HTTPS，请使用 Nginx 配置反向代理解决。
+2. **存储桶权限**：存储桶需设置为公开可读，以便图片能被外部访问。
+3. **路径配置**：
+   - **Bucket** 和 **存储根目录** 配置正确，否则会导致文件存储失败。
+4. **CDN 配置**：若未配置 CDN 域名，将直接使用 Minio Endpoint 地址。
+
+---
+
+## 示例配置
+
+- **Bucket**: `my-images`
+- **Region**: `us-east-1`
+- **AccessKey**: `your-access-key`
+- **SecretKey**: `your-secret-key`
+- **Endpoint**: `minio.example.com:9000`
+- **CDN Domain**: `https://cdn.example.com`
+- **存储根目录**: `uploads/images`
+
+---
+
+## 许可证
+
+本项目基于 [Apache 2.0 许可证](https://www.apache.org/licenses/LICENSE-2.0) 发布，用户可自由使用、修改和分发，但需保留原始版权声明及许可证信息。
+
+---
+
+## 联系
+
+如有问题或建议，请提交 Issue 或 Pull Request。
