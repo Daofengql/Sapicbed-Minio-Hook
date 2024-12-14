@@ -9,7 +9,7 @@
     :license: Apache 2.0, see LICENSE for more details.
 """
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "daofengqianlin"
 __hookname__ = "up2minio"
 __description__ = "将图片保存到minio"
