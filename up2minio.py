@@ -134,7 +134,10 @@ def upimg_save(**kwargs):
             try:
                 #: 使用Backblaze官方SDK上传
                 minio = get_bucket_obj()
-                mime_type, _ = guess_type(filename)
+                if filename.endswith(".webp"):
+                    mime_type = "image/webp"
+                else:
+                    mime_type, _ = guess_type(filename)
                 file = minio.put_object(bucket_name=name, object_name=filepath, content_type=mime_type,data=BytesIO(stream),length=len(stream))
             except Exception as e:
                 res.update(code=500, msg=str(e) or errmsg)
